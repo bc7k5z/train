@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            margin: 0em;
+            padding: 0;
+            background-color: #fff;
+            font-family: "Helvetica Neue",Helvetica,"Hiragino Kaku Gothic ProN","Hiragino Sans",sans-serif;
+            cursor: none;
+            font-size: 1.8vw;
+        }
+        table,tr,th,td{
+            border: 0px solid #000;
+            line-height: 1.1em;
+            white-space: nowrap;
+            border-collapse:collapse;
+            /*margin: 0;*/
+            /*padding: 0;*/
+        }
+        tr{
+            margin: 1em;
+            padding: 0;
+        }
+        .zenmen{
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            position: fixed;
+        }
+        .gamen{
+            margin: 0.5em;
+            padding: 0;
+        }
+        .resshacd{
+            width: 4em;
+            text-align: right;
+            text-align-last:right;
+            margin: 0;
+            padding: 0 1em 0 0;
+        }
+        .jogekbn{
+            width: 2em;
+            text-align: right;
+            text-align-last:right;
+            margin: 0;
+            padding: 0 1em 0 0;
+        }
+        .ekimei{
+            width: 10em;
+            text-align: right;
+            text-align-last:right;
+            margin: 0;
+            padding: 0 1em 0 0;
+        }
+        .jonaikbn{
+            width: 2em;
+            text-align:justify;
+            text-align-last:justify;
+            margin: 0;
+            padding: 0 1em 0 0;
+        }
+        .shubetsukbn{
+            width: 2em;
+            text-align:justify;
+            text-align-last:justify;
+            margin: 0;
+            padding: 0 1em 0 0;
+        }
+        .meisho{
+            width: 12em;
+            text-align: right;
+            text-align-last:right;
+            margin: 0;
+            padding: 0 1em 0 0;
+        }
+        .yukisaki{
+            width: 5em;
+            text-align: right;
+            text-align-last:right;
+            margin: 0;
+            padding: 0 1em 0 0;
+        }
+        .chienjifun{
+            width: 1em;
+            /*text-align:justify;
+            text-align-last:justify;*/
+            text-align: right;
+            margin: 0;
+            padding: 0;
+        }
+        .fuka{
+            width: 2em;
+            text-align:justify;
+            text-align-last:justify;
+            margin: 0;
+            padding: 0;
+        }
+        /*
+        .futsu{
+
+        }
+        .kukankaisoku{
+
+        }
+        .kaisoku{
+
+        }
+        .shinkaisoku{
+
+        }
+        .tokubetsukaisoku{
+
+        }
+        .tokkyu{
+
+        }
+        .rinji{
+
+        }
+        .yokushi{
+
+        }
+        .kyakuatsukaifuka{
+
+        }
+        .fumei{
+
+        }*/
+        .chien_10{
+            color: rgb(255, 255, 255);
+            background-color: rgb(255, 75, 0);
+        }
+        .chien_5{
+            color: rgb(0, 0, 0);
+            background-color: rgb(255, 241, 0);
+        }
+        .chien_3{
+            color: rgb(255, 255, 255);
+            background-color: rgb(246, 170, 0);
+        }
+        .chien_1{
+            color: rgb(255, 255, 255);
+            background-color: rgb(0, 90, 255);
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #000;
+                color: #fff;
+            }
+        }
+    </style>
+    <script>
+        function narrow(auto_narrow, parent){
+          auto_narrow.style.overflow = "scroll";
+          auto_narrow.style.whiteSpace = "nowrap";
+          real_width = auto_narrow.scrollWidth;
+          auto_narrow.style.overflow = "visible";
+      
+          ideal_width = parent.clientWidth;
+          shrink_ratio = ideal_width / real_width;
+          if(shrink_ratio < 1){
+            auto_narrow.style.transformOrigin = 'top left';
+            auto_narrow.style.transform = `scale(${shrink_ratio}, 1)`;
+          }
+          return;
+        }
+      
+        auto_narrows = Array.from(document.getElementsByClassName("auto_narrow"));
+        parents = auto_narrows.map(x => x.parentNode);
+      
+        // Initialize
+        for(let i = 0; i < parents.length; ++i){
+          narrow(auto_narrows[i], parents[i]);
+        }
+      
+        // When parent size is changed.
+        const auto_narrow_observer = new ResizeObserver((entries) => {
+          entries.forEach(({target, _}) => {
+            auto_narrows = target.getElementsByClassName("auto_narrow");
+            for(let auto_narrow of auto_narrows){
+              narrow(auto_narrow, target);
+            }
+          })
+        })
+      
+        for(let auto_narrow of auto_narrows){
+          auto_narrow_observer.observe(auto_narrow.parentNode);
+        }
+      </script>
+</head>
+<body>
+    <div class="zenmen"></div>
+    <div class="gamen">
+        <span id="nowjikan">N/A</span>
+        <table id="myTable">
+            <tr>
+                <th class="resshacd">列車番号</th>
+                <th class="jogekbn">上下</th>
+                <th class="ekimei">在線位置</th>
+                <th class="jonaikbn">内外</th>
+                <th class="shubetsukbn">種別</th>
+                <th class="meisho">名称</th>
+                <th class="yukisaki">行先</th>
+                <th class="chienjifun" colspan="2" style="width: 2em;text-align:justify;text-align-last:justify;">遅延</th>
+            </tr>
+        </table>
+    </div>
+    <script type="text/javascript">
+        let param = "10001";
+        let proxy = "http://secom.starfree.jp/php/get.php?q=";
+        var url_1 ="https://traininfo.jr-central.co.jp/zairaisen/data/hp_eki_master_ja.json";
+        var url_2 = "https://traininfo.jr-central.co.jp/zairaisen/data/hp_zaisenichijoho_" + param + "_ja.json";
+        let ekimaster = 0;
+        document.getElementById("nowjikan").innerHTML = "N/A"
+        function ekisearch(ekinum){
+            const matchingElement = ekimaster.find(item => item.ryokakuEkiCd === ekinum);
+            return matchingElement.ekiMei;
+        };
+        function ekiminus(senkunum,ekinum){
+            const filteredArray = ekimaster.filter(item => item.ryokakuSenkuCd === senkunum);
+            //console.log(filteredArray);
+            const targetCode = ekinum;
+            for (let i = 0; i < filteredArray.length; i++) {
+                if (filteredArray[i].ryokakuEkiCd === targetCode.toString()) {
+                    if (i + 1 < filteredArray.length) {
+                        const nextElement = filteredArray[i + 1];
+                        return nextElement.ekiMei;
+
+
+                        break;
+                    } else {
+                        return "No next element found.";
+                    }
+                }
+            }
+        }
+        function sakujo(){
+            const len = document.querySelector("table").rows.length;
+            if(len == 1){}else{for(var i = 0; i < (len-1); i++){document.querySelector("table").deleteRow(1);};};
+            document.getElementById("nowjikan").innerHTML = "N/A";
+        };
+        function getParam(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+        function setsuzoku(){
+            if(getParam("q")==null){
+                //console.log("路線コードなし");
+                param = '10001';
+            }else{
+                param = getParam("q");
+            };
+            //console.log(param);
+
+            document.getElementById("nowjikan").innerHTML = "電算センタ接続中";
+            fetch(proxy+url_1, {method: "GET",}).then(response => response.json())
+            .then(text => {
+                ekimaster = text.lst;
+                const filteredArray = ekimaster.filter(item => item.ryokakuSenkuCd === param);
+                //console.log(filteredArray);
+
+                fetch(proxy+url_2, {
+                method: "GET",
+                }).then(response => response.json())
+                .then(text => {
+                    sakujo();
+                    //console.log(text.lst);
+                    let ekilst = [];
+                    document.getElementById("nowjikan").innerHTML = text.koshinJikoku + " 現在" + "  在線：" + text.lst.length +"本";
+                    for (var i = 0; i < text.lst.length; i++) {
+                        /*テーブル準備*/
+                        var table = document.getElementById("myTable");
+                        var row = table.insertRow(table.rows.length);
+                        const cell_0 = row.insertCell(0);
+                        const cell_1 = row.insertCell(1);
+                        const cell_2 = row.insertCell(2);
+                        const cell_3 = row.insertCell(3);
+                        const cell_4 = row.insertCell(4);
+                        const cell_5 = row.insertCell(5);
+                        const cell_6 = row.insertCell(6);
+                        const cell_7 = row.insertCell(7);
+                        const cell_8 = row.insertCell(8);
+                        /*列番*/
+                        cell_0.innerHTML = text.lst[i].resshaBng;
+                        /*上下解析*/
+                        if(text.lst[i].jogeKbn == "1"){
+                            cell_1.innerHTML = "上";
+                        }else if(text.lst[i].jogeKbn == "2"){
+                            cell_1.innerHTML = "下";
+                        }else{
+                            cell_1.innerHTML = "不";
+                        };
+                        /*走行位置解析*/
+                        if(text.lst[i].ekiEkikanKbn == "1"){
+                            cell_2.innerHTML = ekisearch(text.lst[i].ryokakuEkiCd); // Set content for cell 2
+                            cell_3.innerHTML = "場内";
+                        }else if(text.lst[i].ekiEkikanKbn == "2"){
+                            if(text.lst[i].jogeKbn == 1){
+                                cell_2.innerHTML = ekiminus(param,text.lst[i].ryokakuEkiCd) + "～" + ekisearch(text.lst[i].ryokakuEkiCd);
+                            }else{
+                                cell_2.innerHTML = ekisearch(text.lst[i].ryokakuEkiCd) + "～" + ekiminus(param,text.lst[i].ryokakuEkiCd);
+                            };
+                            cell_3.innerHTML = "場外";
+                        }else{
+                            cell_2.innerHTML = "不明";
+                            cell_3.innerHTML = "不明";
+                        };
+                        /*種別解析*/
+                        if(text.lst[i].iconKbn == "0"){
+                            cell_4.innerHTML = "普通";
+                            row.classList.add("futsu");
+                        }else if(text.lst[i].iconKbn == "1"){
+                            cell_4.innerHTML = "区快";
+                            row.classList.add("kukankaisoku");
+                        }else if(text.lst[i].iconKbn == "2"){
+                            cell_4.innerHTML = "快速";
+                            row.classList.add("kaisoku");
+                        }else if(text.lst[i].iconKbn == "3"){
+                            cell_4.innerHTML = "新快";
+                            row.classList.add("shinkaisoku");
+                        }else if(text.lst[i].iconKbn == "4"){
+                            cell_4.innerHTML = "特快";
+                            row.classList.add("tokubetsukaisoku");
+                        }else if(text.lst[i].iconKbn == "5"){
+                            cell_4.innerHTML = "特急";
+                            row.classList.add("tokkyu");
+                        }else if(text.lst[i].iconKbn == "6"){
+                            cell_4.innerHTML = "臨時";
+                            row.classList.add("rinji");
+                        }else if(text.lst[i].iconKbn == "98"){
+                            cell_4.innerHTML = "抑止";
+                            row.classList.add("yokushi");
+                        }else if(text.lst[i].iconKbn == "99"){
+                            cell_4.innerHTML = "客不";
+                            row.classList.add("kyakuatsukaifuka");
+                        }else{
+                            cell_4.innerHTML = "不明";
+                            row.classList.add("fumei");
+                        };
+                        cell_5.innerHTML = text.lst[i].aishoMei;
+                        cell_6.innerHTML = text.lst[i].yukisaki;
+                        if(text.lst[i].chienJifun >= 10){
+                            row.classList.add("chien_10");
+                        }else if(text.lst[i].chienJifun >= 5){
+                            row.classList.add("chien_5");
+                        }else if(text.lst[i].chienJifun >= 3){
+                            row.classList.add("chien_3");
+                        }else if(text.lst[i].chienJifun >= 1){
+                            row.classList.add("chien_1");
+                        };
+                        if(text.lst[i].chienJifun == 0){
+                            cell_7.innerHTML = "";
+                        }else{
+                            cell_7.innerHTML = text.lst[i].chienJifun;
+                        };
+                        cell_8.innerHTML = text.lst[i].chienJifunFuka;
+                        /*cell_7.innerHTML = "99";
+                        cell_8.innerHTML = "以上";*/
+                        /*class追加*/
+                        cell_0.classList.add("resshacd","auto_narrow");
+                        cell_1.classList.add("jogekbn","auto_narrow");
+                        cell_2.classList.add("ekimei","auto_narrow");
+                        cell_3.classList.add("jonaikbn","auto_narrow");
+                        cell_4.classList.add("shubetsukbn","auto_narrow");
+                        cell_5.classList.add("meisho","auto_narrow");
+                        cell_6.classList.add("yukisaki","auto_narrow");
+                        cell_7.classList.add("chienjifun","auto_narrow");
+                        cell_8.classList.add("fuka","auto_narrow");
+                    };
+                });
+            });
+        };
+        window.onload = function(){setInterval("setsuzoku()", 10000);};
+        setsuzoku();
+    </script>
+</body>
+</html>
