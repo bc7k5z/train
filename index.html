@@ -31,6 +31,8 @@
             margin: 0;
             padding: 0;
             position: fixed;
+            top: 0px;
+            cursor: none;
         }
         .gamen{
             margin: 0.5em;
@@ -216,7 +218,7 @@
         var url_1 ="https://traininfo.jr-central.co.jp/zairaisen/data/hp_eki_master_ja.json";
         var url_2 = "https://traininfo.jr-central.co.jp/zairaisen/data/hp_zaisenichijoho_" + param + "_ja.json";
         let ekimaster = 0;
-        document.getElementById("nowjikan").innerHTML = "N/A"
+        document.getElementById("nowjikan").innerHTML = "N/A";
         function ekisearch(ekinum){
             const matchingElement = ekimaster.find(item => item.ryokakuEkiCd === ekinum);
             return matchingElement.ekiMei;
@@ -230,8 +232,6 @@
                     if (i + 1 < filteredArray.length) {
                         const nextElement = filteredArray[i + 1];
                         return nextElement.ekiMei;
-
-
                         break;
                     } else {
                         return "No next element found.";
@@ -254,14 +254,17 @@
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         }
         function setsuzoku(){
+            /*路線コード判定*/
             if(getParam("q")==null){
-                //console.log("路線コードなし");
+                console.log("路線コードなし");
                 param = '10001';
             }else{
+                console.log("q");
                 param = getParam("q");
             };
-            //console.log(param);
-
+            console.log(param);
+            url_2 = "https://traininfo.jr-central.co.jp/zairaisen/data/hp_zaisenichijoho_" + param + "_ja.json";
+            /*駅マスタ取得*/
             document.getElementById("nowjikan").innerHTML = "電算センタ接続中";
             fetch(proxy+url_1, {method: "GET",}).then(response => response.json())
             .then(text => {
