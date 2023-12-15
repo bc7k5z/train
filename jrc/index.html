@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+  <meta charset="UTF-8">
+  <title>Grid画面</title>
+  <style>
+    body{
+      background-color : #000;
+      color            : white;
+      font-size        : 20px;
+      line-height      : 1em;
+      font-family: "Helvetica Neue",Helvetica,"Hiragino Kaku Gothic ProN","Hiragino Sans",sans-serif;
+      --fontWeight :400;
+      font-weight: 400;
+    }
+    body::-webkit-scrollbar{
+      /*display: none;*/
+    }
+
+    .grid-container {
+      display        : flex;   /* 子要素表示として横並びのレイアウトを指定 */
+      flex-direction : column;
+    }
+    
+    .grid-row {
+      width   : max-content;
+      display : flex;
+      color   : yellow;
+    }
+    /*  display: flex;
+    */
+    .grid-item {
+      width        : 4em;
+      height       : 1em;
+      /*border: 1px solid #fff;*/
+      border-left  : 0.25px solid #fff;
+      border-right : 0.25px solid #fff;
+      padding      : 10px;
+      flex         : 1;
+      text-align   : right;
+      --fontWeight :500;
+      font-weight: 500;
+    }
+    .ekimeihyou{
+      color            : white;
+      background-color : #000;
+      border-top       : 1px solid #fff;
+      border-bottom    : 1px solid #fff;
+      text-align-last  : justify;       /* Chrome・Firefox用 */
+      text-justify     : inter-ideograph;  /* IE・Edge用 */
+      --fontWeight :400;
+      font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+  <div id="grid-container" class="grid-container">
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row ekimeihyou"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+  </div>
+<script>
+function addColumn(n){const t=n.querySelectorAll(".grid-row");t.forEach((t,i)=>{const r=n.createElement("div"),u=`${i}-${t.children.length}`;r.classList.add("grid-item");r.id=u;t.appendChild(r)})}function findKudariJunByEkiCd(n){for(let t=0;t<ekihyoujiichi.length;t++)if(ekihyoujiichi[t].ryokakuEkiCd===n)return ekihyoujiichi[t].hyoujiichi;return null}function findHyoujiichiy(n,t){if(n===1){let i=Infinity;return resshahyoujiichi.forEach(r=>{if(r.jogeKbn===n&&r.hyoujiichix===t){const n=parseInt(r.hyoujiichiy);n<i&&(i=n)}}),i===Infinity?null:i}if(n===2){let i=-Infinity;return resshahyoujiichi.forEach(r=>{if(r.jogeKbn===n&&r.hyoujiichix===t){const n=parseInt(r.hyoujiichiy);n>i&&(i=n)}}),i===-Infinity?null:i}return null}function zaisenichi(n){for(var t,i=0;i<ekimaster.length*2-1;i++)for(t=0;12>=t;++t)if(6!=t){let r=n.getElementById(t.toString()+"-"+i.toString());r.innerHTML=null}fetch(proxy+url_2,{method:"GET"}).then(n=>n.json()).then(t=>{resshahyoujiichi=[];for(var i=0;i<t.lst.length;i++){let r=t.lst[i];if((r.jogeKbn=="1"||r.jogeKbn=="2")&&(r.ekiEkikanKbn=="1"||r.ekiEkikanKbn=="2")){let f=findKudariJunByEkiCd(r.ryokakuEkiCd),o=r.resshaBng+r.chienJifun.toString().padStart(2,"0"),i=Infinity;r.ekiEkikanKbn=="1"?i=0:r.ekiEkikanKbn=="2"&&(i=-1);let u=findHyoujiichiy(r.jogeKbn,(f+i).toString()),t="";r.jogeKbn=="1"?u==null?(t="5",r.ekiEkikanKbn=="1"||r.ekiEkikanKbn=="2"):(t=(u-1).toString(),console.log(u),r.ekiEkikanKbn=="1"||r.ekiEkikanKbn=="2"):r.jogeKbn=="2"&&(u==null?(t="7",console.log("Infinity"),r.ekiEkikanKbn=="1"||r.ekiEkikanKbn=="2"):(t=(u+1).toString(),console.log(u),r.ekiEkikanKbn=="1"||r.ekiEkikanKbn=="2"));let e=n.getElementById(t+"-"+(Number(f)+i).toString());if(null!=e)resshahyoujiichi.push({jogeKbn:r.jogeKbn,hyoujiichix:(Number(f)+i).toString(),hyoujiichiy:t,resshaBng:r.resshaBng}),e.innerHTML=o;else let n=t+"-"+(Number(f)+i).toString()}}})}function ekimas(n){fetch(proxy+url_1,{method:"GET"}).then(n=>n.json()).then(t=>{ekimaster=t.lst;const r=ekimaster.filter(n=>n.ryokakuSenkuCd===param),i=r;i.sort((n,t)=>parseInt(t.kudariJun)-parseInt(n.kudariJun));ekimaster=i;for(let t=0;t<ekimaster.length;t++)addColumn(n),t==ekimaster.length-1||addColumn(n);for(let t=0;t<ekimaster.length;++t){let i=ekimaster[t];n.getElementById("6-"+t*2).innerHTML=i.ekiMei;let r=t+1;ekihyoujiichi.push({ryokakuEkiCd:i.ryokakuEkiCd,kudariJun:i.kudariJun,hyoujiichi:t*2})}zaisenichi(document);setInterval(function(){zaisenichi(document)},15e3)})}const param="10003",proxy="https://safsgh.cloudfree.jp/get.php?q=",url_1="https://traininfo.jr-central.co.jp/zairaisen/data/hp_eki_master_ja.json",url_2="https://traininfo.jr-central.co.jp/zairaisen/data/hp_zaisenichijoho_"+param+"_ja.json";let ekimaster=null,ekihyoujiichi=[],resshahyoujiichi=[];window.onload=function(){ekimas(document)}
+</script>
+
+</body>
+</html>
