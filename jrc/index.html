@@ -12,7 +12,366 @@
       font-family: "Helvetica Neue",Helvetica,"Hiragino Kaku Gothic ProN","Hiragino Sans",sans-serif;
       --fontWeight :400;
       font-weight: 400;
+    }<!DOCTYPE html>
+<html lang="jp">
+<head>
+  <meta charset="UTF-8">
+  <title>Grid画面</title>
+  <style>
+    body{
+      background-color : #000;
+      color            : white;
+      font-size        : 20px;
+      line-height      : 1em;
+      /*-ms-overflow-style: none;
+      scrollbar-width: none;*/
+      font-family: "Helvetica Neue",Helvetica,"Hiragino Kaku Gothic ProN","Hiragino Sans","pud",sans-serif;
+      --fontWeight :400;
+      font-weight: 400;
     }
+    body::-webkit-scrollbar{
+      /*display: none;*/
+    }
+
+    .grid-container {
+      display        : flex;   /* 子要素表示として横並びのレイアウトを指定 */
+      flex-direction : column;
+    }
+    
+    .grid-row {
+      width   : max-content;
+      display : flex;
+      color   : yellow;
+    }
+    /*  display: flex;
+    */
+    .grid-item {
+      width        : 4em;
+      height       : 1em;
+      /*border: 1px solid #fff;*/
+      border-left  : 0.25px solid #fff;
+      border-right : 0.25px solid #fff;
+      padding      : 10px;
+      flex         : 1;
+      text-align   : right;
+      --fontWeight :500;
+      font-weight: 500;
+    }
+    .ekimeihyou{
+      color            : white;
+      background-color : #000;
+      border-top       : 1px solid #fff;
+      border-bottom    : 1px solid #fff;
+      text-align-last  : justify;       /* Chrome・Firefox用 */
+      text-justify     : inter-ideograph;  /* IE・Edge用 */
+      --fontWeight :400;
+      font-weight: 400;
+    }
+    @font-face {
+            font-family: 'pud';
+            src: url("../../webfont/IwataUDGothic08StdNVFTTF-VF.woff2") format('woff');
+        }
+  </style>
+</head>
+<body>
+  <div id="grid-container" class="grid-container">
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row ekimeihyou"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+    <div class="grid-row"></div>
+  </div>
+  <!--<button onclick="addColumn()">列を追加</button>-->
+  <!--<button onclick="zaisenichi(document);">照会</button>-->
+  <script>
+    /**
+     * 駅マスタ取得
+     * @return {number} カウントの数値
+     */
+    function addColumn(htmlDocument) {
+        const gridRows = htmlDocument.querySelectorAll('.grid-row');
+        gridRows.forEach((row, rowIndex) => {
+            const newGridItem = htmlDocument.createElement('div');
+            const newItemId = `${rowIndex }-${row.children.length }`;
+            newGridItem.classList.add('grid-item');
+            newGridItem.id = newItemId;
+            //newGridItem.textContent = newItemId;
+            row.appendChild(newGridItem);
+        });
+    }
+    const param = "10003";
+    const proxy = "https://safsgh.cloudfree.jp/get.php?q=";
+    const url_1 = "https://traininfo.jr-central.co.jp/zairaisen/data/hp_eki_master_ja.json";
+    const url_2 = "https://traininfo.jr-central.co.jp/zairaisen/data/hp_zaisenichijoho_" + param + "_ja.json";
+    let ekimaster = null;
+    let ekihyoujiichi = new Array();
+    let resshahyoujiichi = new Array();
+    /**
+     * 駅マスタ取得
+     * @param {string} targetEkiCd 操作対象のHTMLドキュメント
+     * @return {number} カウントの数値
+     */
+    function findKudariJunByEkiCd(targetEkiCd) {
+        for (let i = 0; i < ekihyoujiichi.length; i++) {
+            if (ekihyoujiichi[i].ryokakuEkiCd === targetEkiCd) {
+                return ekihyoujiichi[i].hyoujiichi;
+            }
+        }
+        return null; // エキCdが見つからない場合はnullを返す
+    };
+    /**
+     * 駅マスタ取得
+     * @param {number} jogeKbn   上下区分(1:上り, 2:下り)
+     * @param {string} columnIdx 列添え字(0始まり,奇数=駅,偶数=駅間)
+     * @return {number} カウントの数値
+     */
+    function findHyoujiichiy(jogeKbn, columnIdx) {
+        // jogeKbnが1の場合
+        if (jogeKbn === 1) {
+            let smallestHyoujiichiy = Infinity;
+            resshahyoujiichi.forEach(item => {
+                if ((item.jogeKbn === jogeKbn) && (item.hyoujiichix === columnIdx)) {
+                    const currentHyoujiichiy = parseInt(item.hyoujiichiy);
+                    if (currentHyoujiichiy < smallestHyoujiichiy) {
+                        smallestHyoujiichiy = currentHyoujiichiy;
+                    }
+                }
+            });
+            return smallestHyoujiichiy === Infinity ? null : smallestHyoujiichiy;
+        }
+
+        // jogeKbnが2の場合
+        if (jogeKbn === 2) {
+            let largestHyoujiichiy = -Infinity;
+            resshahyoujiichi.forEach(item => {
+                if ((item.jogeKbn === jogeKbn) && (item.hyoujiichix === columnIdx)) {
+                    const currentHyoujiichiy = parseInt(item.hyoujiichiy);
+                    if (currentHyoujiichiy > largestHyoujiichiy) {
+                        largestHyoujiichiy = currentHyoujiichiy;
+                    }
+                }
+            });
+            return (largestHyoujiichiy === -Infinity) ? null : largestHyoujiichiy;
+        }
+
+        return null; // jogeKbnが1または2でない場合
+    }
+  /**
+   * 在線位置情報から
+   * @return {number} カウントの数値
+   */
+    function zaisenichi(htmlDocument){
+        // 駅名以外のセルをクリア
+        for(var i = 0; i < ((ekimaster.length*2)-1); i++){
+            for(var rowIndex = 0; 12 >= rowIndex; ++rowIndex) {
+                if (6 != rowIndex)
+                {
+                    let cell = htmlDocument.getElementById((rowIndex.toString() + "-")+(i.toString()));
+                    cell.innerHTML = null;
+                }
+            }
+        }
+        /*在線位置情報から・・・*/
+        fetch(proxy+url_2, {method: "GET",}).then(response => response.json()).then(text => {
+            //console.log(text);
+            resshahyoujiichi = new Array();
+            for (var i = 0; i < text.lst.length; i++) {
+                let atZaisenichi = (text.lst[i]);
+
+                if (   ((atZaisenichi.jogeKbn      == "1") || (atZaisenichi.jogeKbn      == "2"))
+                    && ((atZaisenichi.ekiEkikanKbn == "1") || (atZaisenichi.ekiEkikanKbn == "2"))
+                )
+                {
+                    //console.log(ekihyoujiichi)
+                    // 駅コードに該当する列インデックス(null : 非該当, 数 : 駅コードに該当する列インデックス)
+                    let hyoujiichi = findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd);
+                    // 表示文字列(列車番号+遅延分(2桁の0パディング))
+                    let dispValue = ((atZaisenichi.resshaBng) + (atZaisenichi.chienJifun.toString()).padStart(2, "0"));
+                    // 列オフセット(駅場内:0, 駅場外:-1)
+                    let offsetCol   = Infinity;
+                    if(atZaisenichi.ekiEkikanKbn == "1"){
+                        offsetCol = 0;
+                    }else if(atZaisenichi.ekiEkikanKbn == "2"){
+                        offsetCol = -1;
+                    };
+                    // 最終位置(null : 同一位置に列車なし, 数 : 同一位置に列車あり)
+                    let saishuichi = findHyoujiichiy(atZaisenichi.jogeKbn,((hyoujiichi+offsetCol).toString()));
+                    console.log(saishuichi);
+
+                    let hyoujiichiy = "";
+                    if(atZaisenichi.jogeKbn == "1") {
+                        // 上り線(同一位置に列車なし)
+                        if(saishuichi == null){
+                            hyoujiichiy = "5";
+                            console.log("Infinity");
+                            // 駅場内
+                            if(atZaisenichi.ekiEkikanKbn == "1"){
+                                console.log(atZaisenichi.resshaBng,"上","同一なし","場内");
+                            // 駅場外
+                            }else if(atZaisenichi.ekiEkikanKbn == "2"){
+                                console.log(atZaisenichi.resshaBng,"上","同一なし","場外");
+                            };
+                        // 上り線(同一位置に列車あり),上に重ねて表示
+                        } else {
+                            hyoujiichiy = ((saishuichi-1).toString());
+                            console.log(saishuichi);
+                            // 駅場内
+                            if(atZaisenichi.ekiEkikanKbn == "1"){
+                                console.log(atZaisenichi.resshaBng,"上","同一あり","場内");
+                            // 駅場外
+                            }else if(atZaisenichi.ekiEkikanKbn == "2"){
+                                console.log(atZaisenichi.resshaBng,"上","同一あり","場外");
+                            };
+                        };
+                    }else if(atZaisenichi.jogeKbn == "2"){
+                        // 下り線(同一位置に列車なし)
+                        if(saishuichi == null){
+                            hyoujiichiy = "7";
+                            console.log("Infinity");
+                            // 駅場内
+                            if(atZaisenichi.ekiEkikanKbn == "1"){
+                                console.log(atZaisenichi.resshaBng,"下","同一なし","場内");
+                            // 駅場外
+                            }else if(atZaisenichi.ekiEkikanKbn == "2"){
+                                console.log(atZaisenichi.resshaBng,"下","同一なし","場外");
+                            };
+                        // 下り線(同一位置に列車あり),下に重ねて表示
+                        } else {
+                            hyoujiichiy = ((saishuichi+1).toString());
+                            console.log(saishuichi);
+                            // 駅場内
+                            if(atZaisenichi.ekiEkikanKbn == "1"){
+                                console.log(atZaisenichi.resshaBng,"下","同一あり","場内");
+                            // 駅場外
+                            }else if(atZaisenichi.ekiEkikanKbn == "2"){
+                                console.log(atZaisenichi.resshaBng,"下","同一あり","場外");
+                            };
+                        };
+                    };
+                    let cell = htmlDocument.getElementById(hyoujiichiy+"-"+((Number(hyoujiichi)+offsetCol).toString()));
+                    if (null != cell)
+                    {
+                        resshahyoujiichi.push({  jogeKbn     : (atZaisenichi.jogeKbn)
+                                                , hyoujiichix : ((Number(hyoujiichi)+offsetCol).toString())
+                                                , hyoujiichiy : hyoujiichiy
+                                                , resshaBng   :atZaisenichi.resshaBng
+                                                });
+                        cell.innerHTML = dispValue;
+                    }
+                    else
+                    {
+                        // 起点で駅場外の場合、列添え字が範囲外になるケース(将来対応)
+                        let debugStr = (hyoujiichiy+"-"+((Number(hyoujiichi)+offsetCol).toString()));
+                        console.log("[" + debugStr + " is null!");
+                    }
+                }
+                console.log("A",resshahyoujiichi);
+                //表示したい列車の場所はどこか。表示したい列車の場所に何本いるのか。
+                //上りだったら記載場所の上に書く。
+                //下りだったら、記載場所の下に書く。
+
+                /*
+                for (var i = 0; i < text.lst.length; i++) {
+                    if(atZaisenichi.jogeKbn == "1"){
+                    //上り線
+                    if(atZaisenichi.ekiEkikanKbn == "1"){
+                        //駅場内
+                        resshahyoujiichi.push({jogeKbn:"1",hyoujiichi:findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd),resshaBng:atZaisenichi.resshaBng});
+                            console.log(atZaisenichi.resshaBng,"上り場内",findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd));
+                            htmlDocument.getElementById("5-"+findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd)).innerHTML = atZaisenichi.resshaBng;
+                    }else if(atZaisenichi.ekiEkikanKbn == "2"){
+                        if(atZaisenichi.jogeKbn == 1){
+                            console.log(atZaisenichi.resshaBng,"上り場外");
+                            htmlDocument.getElementById("5-"+findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd)).innerHTML = atZaisenichi.resshaBng;
+                        };
+                    };
+                    }else if(atZaisenichi.jogeKbn == "2"){
+                    //下り線
+                    if(atZaisenichi.ekiEkikanKbn == "1"){
+                        //駅場内
+                        resshahyoujiichi.push({jogeKbn:"2",hyoujiichi:findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd),resshaBng:atZaisenichi.resshaBng});
+                        console.log(atZaisenichi.resshaBng,"下り場内",findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd));
+                        htmlDocument.getElementById("7-"+findKudariJunByEkiCd(atZaisenichi.ryokakuEkiCd)).innerHTML = atZaisenichi.resshaBng;
+                    }else if(atZaisenichi.ekiEkikanKbn == "2"){
+                        if(atZaisenichi.jogeKbn == 2){
+                            console.log(atZaisenichi.resshaBng,"下り場外")
+                        };
+                    };
+                };
+
+                console.log(resshahyoujiichi)
+                */
+            };
+        });
+    };
+    /**
+     * 駅マスタからグリッドを準備する
+     * @param {#document} htmlDocument 操作対象のHTMLドキュメント
+     * @return {number} カウントの数値
+     */
+    function ekimas(htmlDocument){
+        /*駅マスタ取得*/
+        fetch(proxy+url_1, {method: "GET",}).then(response => response.json()).then(text => {
+            ekimaster = text.lst;
+            const filteredArray = ekimaster.filter(item => item.ryokakuSenkuCd === param);
+            //console.log(JSON.stringify(filteredArray));
+            console.log(filteredArray);
+            const sortdata = filteredArray;
+            // kudariJunをキーとして降順で並び替える
+            sortdata.sort((a, b) => parseInt(b.kudariJun) - parseInt(a.kudariJun));
+            // 降順で並び替えた結果を表示
+            //console.log(sortdata);
+            ekimaster = sortdata;
+            //駅の数だけ繰り返す
+            for (let i = 0; i < ekimaster.length; i++) {
+                addColumn(htmlDocument);
+                //終着駅の場合
+                if (i == (ekimaster.length - 1)) {
+                    ;
+                } else {
+                    addColumn(htmlDocument);
+                };
+            };
+            // 駅名の行に関する情報を生成する
+            // let ekimeinum = 0;
+            // for (let i = 0; i < ((ekimaster.length * 2) - 1); i++) {
+            //     if (i % 2 == 0) {
+            //     // 偶数のマスである
+            //     //console.log("偶数","i:"+i,"ekimeinum:"+ekimeinum,ekimaster[ekimeinum].ekiMei);                    
+            //     htmlDocument.getElementById("6-"+i).innerHTML = ekimaster[ekimeinum].ekiMei;
+            //     ekimeinum = ekimeinum + 1 ;
+            //     ekihyoujiichi.push({ryokakuEkiCd:ekimaster[ekimeinum].ryokakuEkiCd,kudariJun:ekimaster[ekimeinum].kudariJun,hyoujiichi:i});
+            //     };
+            // };
+            for (let i = 0; i < ekimaster.length; ++i) {
+                //console.log("偶数","i:"+i,"ekimeinum:"+ekimeinum,ekimaster[ekimeinum].ekiMei);                    
+                let currentEki = ekimaster[i]; // 作業対象駅
+                htmlDocument.getElementById("6-"+(i * 2)).innerHTML = currentEki.ekiMei;
+                let ekimeinum = (i + 1);
+                ekihyoujiichi.push({ryokakuEkiCd:currentEki.ryokakuEkiCd,kudariJun:currentEki.kudariJun,hyoujiichi:(i * 2)});
+            };
+
+            // fetchは非同期のため、マスタ情報準備完了したらグリッドへ反映する。
+            zaisenichi(document);
+            // fetchは非同期のため、マスタ情報準備完了したら定期処理を開始する。
+            setInterval(function(){zaisenichi(document);}, 15000);
+        });
+    };
+
+    window.onload = function(){ ekimas(document); };
+</script>
+
+</body>
+</html>
+
     body::-webkit-scrollbar{
       /*display: none;*/
     }
